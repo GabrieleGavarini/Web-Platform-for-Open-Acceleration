@@ -1,0 +1,14 @@
+.venv
+__pycache__/
+.ruff_cache
+.env
+.fastembed_cache
+tmp
+
+data/*
+!data/corpora/
+data/corpora/*
+!data/corpora/corpus.example.toml
+!data/multi-corpora/
+data/multi-corpora/*
+!data/multi-corpora/multi_corpora.example.toml

@@ -1,0 +1,143 @@
+[project]
+name = "web-open-acceleration-platform"
+version = "0.1.0"
+description = "Graph-based retrieval and question answering over EU legal corpora."
+requires-python = ">=3.14"
+dependencies = [
+    "bs4>=0.0.2",
+    "docling>=2.120.2",
+    "langchain>=1.3.16",
+    "langchain-huggingface>=1.2.2",
+    "langchain-openai>=1.5.1",
+    "langfuse>=4.14.4",
+    "markdown2>=2.5.5",
+    "neo4j>=6.2.0",
+    "nicegui>=3.18.0",
+    "numpy>=2.1.0",
+    "openai>=3.1.0",
+    "pydantic>=2.13.4",
+    "pypdfium2>=5.13.0",
+    "rank-bm25>=0.2.2",
+    "requests>=2.34.2",
+    "scipy>=1.14.0",
+    "sentence-transformers>=5.7.0",
+    "structlog>=26.1.0",
+    "tenacity>=9.1.4",
+    "tiktoken>=0.14.0",
+]
+
+[project.scripts]
+wbpoa-ingest = "wbpoa.cli.ingest:main"
+wbpoa-query = "wbpoa.cli.query:main"
+wbpoa-answer = "wbpoa.cli.answer:main"
+wbpoa-multi-answer = "wbpoa.cli.multi_answer:main"
+wbpoa-ui = "wbpoa.cli.ui:main"
+
+[dependency-groups]
+dev = [
+  "pyright>=1.1.411",
+  "ruff>=0.16.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wbpoa"]
+
+[tool.ruff]
+line-length = 120
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+
+# Assume Python 3.13
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+  "ALL",  # include all the rules, including new ones
+]
+ignore = [
+  #### modules
+  "ANN",  # flake8-annotations
+  "COM",  # flake8-commas
+  "CPY", 
+  "C90",  # mccabe complexity
+  "DJ",  # django
+  "EXE",  # flake8-executable
+  "T10",  # debugger
+  "TID",  # flake8-tidy-imports
+  #### specific rules
+  "D100",  # ignore missing docs
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+  "D200",
+  "D203",  # incompatible with D211
+  "D205",
+  "D212",
+  "D400",
+  "D401",
+  "D415",
+  "E402",  # false positives for local imports
+  "E501",  # line too long
+  "EM102",
+  "TC001",
+  "TC002",
+  "TC003",
+  "TD002",
+  "TD003",
+  "TRY003",  # external messages in exceptions are too verbose
+  "FIX002",  # too verbose descriptions of todos
+  "RUF022",
+]
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Allow unused imports in __init__.py files.
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

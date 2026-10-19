@@ -1,0 +1,592 @@
+/* WBPOA chat UI: an Official Journal reading world over standard Quasar controls. */
+
+:root {
+  --paper: #fcfcfa;
+  --panel: #f1f2ef;
+  --ink: #17181c;
+  --ink-2: #44464e;
+  --ink-3: #5f626b;
+  --rule: #d6d7d2;
+  --rule-strong: #b9bab4;
+  --band: #1d2f57;
+  --band-ink: #e8ecf5;
+  --accent: #b40010;
+  --accent-strong: #8c000c;
+  --accent-wash: #f8e8e9;
+  --error: #7c1d12;
+  --error-wash: #fbeeec;
+
+  /* The sub agents of a pairing, in corpus order: kept clear of the red accent (searching) and of
+     the error red, each at least 5:1 on the paper, and checked for colour-blind separation. */
+  --agent-1: #007d5a;
+  --agent-2: #6c3fc4;
+  --agent-3: #975f00;
+  --agent-4: #0066b8;
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --sans: "Source Sans 3", "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
+  --mono: "Source Code Pro", ui-monospace, "SFMono-Regular", monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: 1.25rem;
+  --step-3: 1.625rem;
+  --step-4: 2.125rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius: 2px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* The reading width every page shares, set by the conversation: the answer, with its footnotes
+     in a column on the right. The about page and a node's page use the same two columns. */
+  --thread-max: 1240px;
+  --sources-width: 340px;
+  --answer-max: calc(var(--thread-max) - var(--sources-width) - var(--space-7));
+}
+
+body.body--dark {
+  --paper: #131418;
+  --panel: #1b1d22;
+  --ink: #ececea;
+  --ink-2: #c0c2c8;
+  --ink-3: #9fa2ab;
+  --rule: #2e3038;
+  --rule-strong: #454852;
+  --band: #0f1a33;
+  --band-ink: #d4dbea;
+  --accent: #f2787f;
+  --accent-strong: #f79aa0;
+  --accent-wash: #2a1719;
+  --error: #f3a596;
+  --error-wash: #2a1a17;
+  --agent-1: #14a596;
+  --agent-2: #9a78ec;
+  --agent-3: #c08414;
+  --agent-4: #3b93e4;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--accent); color: #fff; }
+body.body--dark ::selection { color: #131418; }
+
+* { scrollbar-color: var(--rule-strong) transparent; scrollbar-width: thin; }
+
+a { color: var(--accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius); }
+
+/* NiceGUI stacks its content and sub pages as left-aligned, shrink-wrapped flex columns:
+   stretch them so the masthead, running head, and page span the window, and let the page
+   grow to the bottom of the viewport. */
+.nicegui-content, .nicegui-sub-pages { padding: 0; gap: 0; width: 100%; align-items: stretch; }
+.nicegui-content { min-height: 100dvh; }
+.nicegui-sub-pages { flex: 1 0 auto; flex-direction: column; }
+.nicegui-sub-pages > * { width: 100%; }
+
+/* Quasar sets display sizes and line heights on bare h1 to h6 (an h2 is 60px tall);
+   reset them so headings take their size from this sheet. */
+.nicegui-sub-pages :where(h1, h2, h3, h4, h5, h6) { line-height: 1.25; letter-spacing: normal; font-weight: 600; }
+
+.wbpoa-skip {
+  position: absolute; left: var(--space-4); top: var(--space-2); z-index: 10; display: inline-block; width: max-content;
+  padding: var(--space-2) var(--space-4); background: var(--ink); color: var(--paper);
+  font-weight: 600; text-decoration: none; border-radius: var(--radius);
+  transform: translateY(-200%);
+}
+.wbpoa-skip:focus { transform: none; color: var(--paper); }
+
+/* Masthead and running head */
+
+.wbpoa-masthead {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);
+  height: 64px; padding: 0 var(--space-6);
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+}
+.wbpoa-brand { display: flex; align-items: center; gap: var(--space-4); color: var(--ink); text-decoration: none; min-width: 0; }
+.wbpoa-brand:hover { color: var(--ink); }
+.wbpoa-brand img { height: 38px; width: auto; display: block; }
+body.body--dark .wbpoa-brand img { filter: brightness(0) invert(0.92); }
+.wbpoa-brand-name {
+  font-family: var(--serif); font-size: var(--step-2); font-weight: 600; letter-spacing: 0.01em;
+  padding-left: var(--space-4); border-left: 1px solid var(--rule-strong); line-height: 1.1;
+}
+.wbpoa-brand-name small { display: block; font-family: var(--sans); font-weight: 400; font-size: var(--step--1); color: var(--ink-3); letter-spacing: 0; }
+
+.wbpoa-nav { display: flex; gap: var(--space-5); }
+.wbpoa-nav a {
+  color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: var(--step-0);
+  padding: var(--space-2) 0; border-bottom: 2px solid transparent;
+  transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+}
+.wbpoa-nav a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+.wbpoa-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+.wbpoa-running-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4);
+  min-height: 34px; padding: var(--space-2) var(--space-6);
+  background: var(--band); color: var(--band-ink);
+  font-family: var(--sans); font-size: var(--step--1); font-variant-numeric: tabular-nums;
+}
+.wbpoa-running-head .wbpoa-running-lead { font-weight: 600; }
+
+.wbpoa-page { flex: 1 0 auto; width: 100%; max-width: calc(var(--thread-max) + 2 * var(--space-6)); margin: 0 auto; padding: var(--space-6) var(--space-6) var(--space-7); }
+.wbpoa-page > .wbpoa-doc { margin-inline: auto; }
+.wbpoa-page:focus { outline: none; }
+
+/* Two-pane layouts */
+
+.wbpoa-split { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--space-7); align-items: start; }
+.wbpoa-aside { position: sticky; top: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); }
+
+/* The chat and the citation graph are application shells: the corpus panel runs the full height
+   on the left, scrolled on its own, and the conversation or the graph fills the rest of the
+   window; the chat's composer stays at the bottom of the view. */
+
+.wbpoa-page--app { max-width: none; padding: 0; display: flex; }
+.wbpoa-page--app > .wbpoa-split { flex: 1; grid-template-columns: 300px minmax(0, 1fr); gap: 0; align-items: stretch; }
+.wbpoa-app-aside {
+  top: 0; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--space-6) var(--space-5); border-right: 1px solid var(--rule);
+}
+.wbpoa-chat-aside .wbpoa-secondary.q-btn { margin-left: calc(-1 * var(--space-2)); }
+.wbpoa-conversation { display: flex; flex-direction: column; min-width: 0; padding: 0 var(--space-6); }
+.wbpoa-conversation > .wbpoa-thread, .wbpoa-conversation > .wbpoa-empty { width: 100%; max-width: var(--thread-max); margin: 0 auto; padding-top: var(--space-7); }
+.wbpoa-conversation > .wbpoa-empty { flex: 1 0 auto; }
+
+/* The graph's corpus panel: the corpus picker over the corpus's contents, one folded group per
+   type, and in a corpus of several instruments one fold per instrument inside each provision
+   group. Provisions are a grid of their numbers, documents a list of names clamped to two lines;
+   the node being read (marked by reading.js) is filled with the accent. */
+
+.wbpoa-graph-main { min-width: 0; display: flex; flex-direction: column; }
+.wbpoa-contents { display: grid; margin: 0 calc(-1 * var(--space-2)); }
+.wbpoa-contents-group { border-top: 1px solid var(--rule); }
+.wbpoa-contents-group:last-child { border-bottom: 1px solid var(--rule); }
+.wbpoa-contents summary {
+  list-style: none; cursor: pointer; padding: var(--space-3) var(--space-2); border-radius: var(--radius);
+  font-family: var(--serif); font-size: var(--step-1); font-weight: 600; color: var(--ink);
+  transition: background-color 150ms var(--ease-out);
+}
+.wbpoa-contents summary::-webkit-details-marker { display: none; }
+.wbpoa-contents summary:hover { background: var(--panel); }
+.wbpoa-contents-summary { display: flex; align-items: baseline; gap: var(--space-3); }
+.wbpoa-contents-label { flex: 1; min-width: 0; }
+.wbpoa-contents-summary::after {
+  content: ""; flex: none; align-self: center; width: 0.45rem; height: 0.45rem; margin: 0 var(--space-1) 0.15rem;
+  border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3);
+  transform: rotate(-45deg); transition: transform 150ms var(--ease-out);
+}
+.wbpoa-contents details[open] > summary > .wbpoa-contents-summary::after { transform: rotate(45deg); }
+.wbpoa-contents-instrument { margin-left: var(--space-2); }
+.wbpoa-contents-instrument + .wbpoa-contents-instrument { border-top: 1px solid var(--rule); }
+.wbpoa-contents-instrument:last-child { margin-bottom: var(--space-2); }
+.wbpoa-contents-instrument > summary {
+  padding: var(--space-2); font-family: var(--sans); font-size: var(--step--1); color: var(--ink-2);
+}
+.wbpoa-contents-grid {
+  list-style: none; margin: 0; padding: var(--space-1) var(--space-2) var(--space-4);
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr)); gap: 2px;
+}
+.wbpoa-contents-grid a {
+  display: flex; align-items: center; justify-content: center; min-height: 2rem; padding: 0 2px;
+  font-size: var(--step--1); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2);
+  text-decoration: none; border-radius: var(--radius);
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.wbpoa-contents-docs { list-style: none; margin: 0; padding: var(--space-1) 0 var(--space-4); display: grid; gap: 1px; }
+.wbpoa-contents-docs a {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  padding: var(--space-2); font-size: var(--step--1); line-height: 1.4; color: var(--ink-2);
+  text-decoration: none; overflow-wrap: anywhere; border-radius: var(--radius);
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.wbpoa-contents a:hover { background: var(--panel); color: var(--accent); text-decoration: none; }
+.wbpoa-contents-grid a[aria-current="page"], .wbpoa-contents-grid a[aria-current="page"]:hover { background: var(--accent); color: var(--paper); }
+.wbpoa-contents-docs a[aria-current="page"] { background: var(--accent-wash); color: var(--accent); font-weight: 600; }
+
+/* A corpus's page: what the corpus holds, set like the about page beside the panel. */
+.wbpoa-corpus { min-width: 0; padding: var(--space-7) var(--space-6); }
+.wbpoa-corpus .wbpoa-doc table.wbpoa-counts { width: auto; min-width: 16rem; }
+
+/* A node's page is the chat's shell mirrored: the text is the page, its citations a supporting
+   pane on the window's right edge. The text pane takes most of the window and, like the
+   conversation, centres its column in it; the column and its type grow with the window, so a
+   wide screen reads larger rather than emptier. The citations pane grows a little with the
+   window, up to 520px, stays in view, and has no scrollbar of its own: reading.js scrolls it in
+   step with the page, so both reach their ends together. */
+.wbpoa-reading.wbpoa-reading--app {
+  --read-size: clamp(var(--step-1), 0.6rem + 0.55vw, 1.25rem);
+  flex: 1; gap: 0; align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) clamp(var(--sources-width), 26vw, 520px);
+}
+.wbpoa-reading--app > .wbpoa-reading-main { padding: var(--space-7) var(--space-6); }
+.wbpoa-reading--app .wbpoa-article, .wbpoa-reading--app .wbpoa-communities { max-width: calc(var(--read-size) * 40); margin-inline: auto; }
+.wbpoa-reading--app .wbpoa-article-text { font-size: var(--read-size); }
+.wbpoa-reading--app > .wbpoa-reading-side {
+  container: citations / inline-size;
+  position: static; max-height: none; overflow: visible; padding: var(--space-6);
+}
+.wbpoa-reading--app > .wbpoa-reading-side[data-synced] { position: sticky; top: 0; align-self: start; max-height: 100dvh; overflow: hidden; }
+.wbpoa-reading--app [id] { scroll-margin-top: var(--space-5); }
+.wbpoa-reading--app .wbpoa-ego { height: auto; aspect-ratio: 16 / 9; min-height: 300px; max-height: 62vh; }
+@container citations (min-width: 36rem) {
+  .wbpoa-reading-side .wbpoa-neighbours { display: block; columns: 16rem; column-gap: var(--space-6); }
+  .wbpoa-reading-side .wbpoa-neighbour-group { break-inside: avoid; margin-bottom: var(--space-5); }
+}
+
+.wbpoa-section-title {
+  font-family: var(--serif); font-size: var(--step-1); font-weight: 600; color: var(--ink);
+  margin: 0 0 var(--space-2);
+}
+.wbpoa-meta { color: var(--ink-3); font-size: var(--step--1); line-height: 1.45; }
+.wbpoa-meta-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); }
+.wbpoa-meta-list li { color: var(--ink-2); font-size: var(--step--1); line-height: 1.4; }
+
+.wbpoa-rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+/* Chat */
+
+.wbpoa-thread { flex: 1 0 auto; display: flex; flex-direction: column; gap: var(--space-7); padding-bottom: var(--space-6); }
+.wbpoa-thread > article { scroll-margin-top: var(--space-5); }
+.wbpoa-thread > article + article { border-top: 1px solid var(--rule); padding-top: var(--space-7); }
+
+/* An exchange: the answer on the left, the provisions it cites in a column on its right that
+   stays in view beside a long answer. Reading pages share the two columns: the about page puts
+   its contents in the side column, a node's page its citations, scrolled on their own when long. */
+.wbpoa-reply-body, .wbpoa-reading { display: grid; grid-template-columns: minmax(0, 1fr) var(--sources-width); gap: var(--space-7); align-items: start; }
+.wbpoa-reply-body--single { grid-template-columns: minmax(0, 1fr); }
+.wbpoa-reply-main, .wbpoa-reading-main { min-width: 0; }
+.wbpoa-reply-sources, .wbpoa-reading-side { position: sticky; top: var(--space-5); padding-left: var(--space-5); border-left: 1px solid var(--rule); }
+.wbpoa-reading-side { max-height: calc(100dvh - 2 * var(--space-5)); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--space-5); }
+.wbpoa-reading-side > * { flex-shrink: 0; }
+.wbpoa-reply-sources .wbpoa-footnotes { margin-top: 0; }
+.wbpoa-reply-sources .wbpoa-footnotes::before { display: none; }
+.wbpoa-reply-sources .wbpoa-no-sources { margin-top: 0; }
+.wbpoa-reply-sources .wbpoa-footnote .excerpt { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.wbpoa-sources-title { font-family: var(--sans); font-size: var(--step--1); font-weight: 600; color: var(--ink-2); margin: 0 0 var(--space-3); }
+
+.wbpoa-question {
+  font-family: var(--sans); font-weight: 600; font-size: var(--step-1); line-height: 1.45; color: var(--ink);
+  white-space: pre-wrap; margin: 0 0 var(--space-4);
+}
+
+.wbpoa-answer { font-family: var(--serif); font-size: var(--step-1); line-height: 1.62; color: var(--ink); }
+.wbpoa-answer p, .wbpoa-answer ul, .wbpoa-answer ol, .wbpoa-answer table { margin: 0 0 var(--space-4); }
+.wbpoa-answer > :last-child { margin-bottom: 0; }
+/* Tailwind's preflight (shipped with NiceGUI) strips list markers: give the answer's lists theirs back. */
+.wbpoa-answer ul, .wbpoa-answer ol { padding-left: 1.5rem; }
+.wbpoa-answer ul { list-style: disc; }
+.wbpoa-answer ol { list-style: decimal; }
+.wbpoa-answer ul ul, .wbpoa-answer ol ul { list-style: circle; margin: var(--space-2) 0 0; }
+.wbpoa-answer ol ol { list-style: lower-alpha; margin: var(--space-2) 0 0; }
+.wbpoa-answer li::marker { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wbpoa-answer li { margin-bottom: var(--space-2); }
+.wbpoa-answer li > p { margin: 0; }
+.wbpoa-answer strong { font-weight: 600; }
+.wbpoa-answer h1, .wbpoa-answer h2, .wbpoa-answer h3, .wbpoa-answer h4 { font-size: var(--step-1); font-weight: 600; margin: var(--space-5) 0 var(--space-2); }
+.wbpoa-answer table { border-collapse: collapse; font-family: var(--sans); font-size: var(--step--1); }
+.wbpoa-answer th, .wbpoa-answer td { text-align: left; padding: var(--space-2) var(--space-3) var(--space-2) 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.wbpoa-answer code { font-family: var(--mono); font-size: 0.85em; }
+
+/* An inline citation keeps the agent's bracket, e.g. [Article 6 GDPR], and jumps to its footnote.
+   While the answer is typed out it is already styled (span.wbpoa-cite, the accent colour of a link),
+   and becomes the link once the answer is footnoted. */
+span.wbpoa-cite { color: var(--accent); }
+.wbpoa-cite {
+  font-family: var(--sans); font-size: 0.86em; font-weight: 600; font-variant-numeric: tabular-nums;
+  text-decoration: none; padding: 0 2px; border-radius: var(--radius); box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  transition: background-color 150ms var(--ease-out);
+}
+a.wbpoa-cite:hover { background: var(--accent-wash); text-decoration: underline; }
+
+.wbpoa-footnotes { margin-top: var(--space-5); }
+.wbpoa-footnotes::before { content: ""; display: block; width: 7rem; border-top: 1px solid var(--ink-3); margin-bottom: var(--space-3); }
+.wbpoa-footnotes ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.wbpoa-footnote {
+  display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: var(--space-1); font-size: var(--step--1); line-height: 1.5;
+  scroll-margin: var(--space-6) 0 calc(var(--space-7) * 3); padding: var(--space-1) var(--space-2); margin: 0 calc(-1 * var(--space-2));
+  border-radius: var(--radius); transition: background-color 600ms var(--ease-out);
+}
+.wbpoa-footnote:target { background: var(--accent-wash); }
+.wbpoa-footnote-number { font-family: var(--sans); font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wbpoa-footnote a { font-weight: 600; }
+.wbpoa-footnote .instrument { color: var(--ink-2); }
+.wbpoa-footnote .celex { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-3); margin-left: var(--space-2); }
+.wbpoa-footnote .excerpt { display: block; font-family: var(--serif); color: var(--ink-2); margin-top: 2px; }
+
+.wbpoa-no-sources { font-size: var(--step--1); color: var(--ink-3); margin-top: var(--space-4); }
+
+/* A reply reads top down as it was made: the line saying where it came from (the status line while
+   it is researched), the research, then the answer, so nothing above the answer moves when it lands. */
+.wbpoa-reply-meta { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0 0 var(--space-4); font-size: var(--step--1); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.wbpoa-trail { margin-bottom: var(--space-4); }
+.wbpoa-trail .q-expansion-item__container > .q-item { padding: 0; min-height: 32px; font-size: var(--step--1); color: var(--ink-2); }
+.wbpoa-steps { margin: var(--space-2) 0 0; padding-left: 1.4rem; display: grid; gap: var(--space-3); font-size: var(--step--1); line-height: 1.45; color: var(--ink-2); }
+.wbpoa-steps .step-kind { color: var(--ink-3); font-weight: 600; }
+.wbpoa-steps .step-found { display: block; margin-top: 2px; color: var(--ink-3); }
+.wbpoa-steps .step-found a { font-weight: 600; }
+.wbpoa-steps .step-error { display: block; color: var(--error); }
+.wbpoa-steps .step-running .step-kind { color: var(--accent); }
+/* The running dot leads the step, ahead of a pairing's agent tag. */
+.wbpoa-steps .step-running::before {
+  content: ""; display: inline-block; width: 0.45rem; height: 0.45rem; margin-right: var(--space-2);
+  border-radius: 50%; background: var(--accent); vertical-align: 0.1em;
+}
+/* Pairings: which sub agent each step belongs to. A delegation names its agent in a filled tag,
+   and the agent's searches and lookups carry a smaller outlined one, in the same colour. */
+.wbpoa-steps .step-agent-1 { --agent: var(--agent-1); }
+.wbpoa-steps .step-agent-2 { --agent: var(--agent-2); }
+.wbpoa-steps .step-agent-3 { --agent: var(--agent-3); }
+.wbpoa-steps .step-agent-4 { --agent: var(--agent-4); }
+.wbpoa-steps .step-agent {
+  display: inline-block; padding: 0 var(--space-2); border-radius: 999px;
+  font-weight: 600; line-height: 1.6; white-space: nowrap;
+  color: var(--agent, var(--ink-2)); background: color-mix(in srgb, var(--agent, var(--ink-3)) 12%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--agent, var(--ink-3)) 45%, var(--paper));
+}
+.wbpoa-steps .step-agent--sub { padding: 0 6px; font-size: 0.75rem; line-height: 1.45; background: none; }
+/* What a sub agent did is nested under the delegation that started it, ruled in the agent's colour. */
+.wbpoa-steps .step-subtasks {
+  list-style: none; display: grid; gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-1); padding: var(--space-1) 0 var(--space-1) var(--space-4);
+  border-left: 2px solid var(--agent);
+}
+/* In a pairing every step speaks in its agent's colour, running or done, instead of the accent red. */
+.wbpoa-steps li[class*="step-agent-"] .step-kind { color: var(--agent); }
+.wbpoa-steps li[class*="step-agent-"].step-running::before { background: var(--agent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .wbpoa-live .wbpoa-steps li:last-child { animation: wbpoa-rise 240ms var(--ease-out) both; }
+  .wbpoa-steps .step-running::before { animation: wbpoa-pulse 1.2s ease-in-out infinite; }
+}
+@keyframes wbpoa-pulse { 50% { opacity: 0.25; } }
+
+/* The answer while it is being typed out: its Markdown rendered, citations still in brackets,
+   with a caret after the last block (or the last item of a closing list). */
+.wbpoa-answer--streaming > :last-child:not(ul, ol, table)::after,
+.wbpoa-answer--streaming > :is(ul, ol):last-child > li:last-child::after {
+  content: ""; display: inline-block; width: 0.5em; height: 1.1em; margin-left: 2px;
+  background: var(--accent); vertical-align: text-bottom;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wbpoa-answer--streaming > :last-child:not(ul, ol, table)::after,
+  .wbpoa-answer--streaming > :is(ul, ol):last-child > li:last-child::after { animation: wbpoa-caret 1s steps(1) infinite; }
+}
+@keyframes wbpoa-caret { 50% { opacity: 0; } }
+
+.wbpoa-error {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  padding: var(--space-4); background: var(--error-wash); color: var(--error); border-radius: var(--radius);
+  font-size: var(--step-0); line-height: 1.5;
+}
+
+.wbpoa-pending-answer { display: grid; gap: var(--space-3); }
+.wbpoa-pending-status { margin-bottom: var(--space-4); font-size: var(--step--1); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.wbpoa-skeleton { height: 0.9rem; border-radius: var(--radius); background: var(--panel); position: relative; overflow: hidden; }
+.wbpoa-skeleton:nth-child(2) { width: 92%; }
+.wbpoa-skeleton:nth-child(3) { width: 78%; }
+.wbpoa-skeleton:nth-child(4) { width: 54%; }
+@media (prefers-reduced-motion: no-preference) {
+  .wbpoa-skeleton::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper) 70%, transparent), transparent);
+    transform: translateX(-100%); animation: wbpoa-sweep 1.6s var(--ease-out) infinite;
+  }
+}
+@keyframes wbpoa-sweep { to { transform: translateX(100%); } }
+@keyframes wbpoa-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.wbpoa-empty h1 { font-family: var(--serif); font-size: var(--step-4); font-weight: 600; line-height: 1.15; margin: 0 0 var(--space-3); letter-spacing: -0.01em; text-wrap: balance; }
+.wbpoa-empty p { color: var(--ink-2); font-size: var(--step-1); line-height: 1.55; max-width: 72ch; margin: 0 0 var(--space-5); }
+.wbpoa-empty .wbpoa-section-title { margin-bottom: var(--space-3); }
+.wbpoa-examples { display: grid; margin: 0 calc(-1 * var(--space-2)); border-top: 1px solid var(--rule); }
+.wbpoa-example.q-btn {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: var(--space-4);
+  text-align: left; text-transform: none; font-weight: 400; letter-spacing: 0;
+  font-family: var(--serif); font-size: var(--step-1); line-height: 1.45; color: var(--ink);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--rule); border-radius: 0; min-height: 52px;
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.wbpoa-example.q-btn::after {
+  content: "Ask"; font-family: var(--sans); font-size: var(--step--1); font-weight: 600; color: var(--accent);
+  opacity: 0; transform: translateX(-4px); transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out);
+}
+.wbpoa-example.q-btn:hover, .wbpoa-example.q-btn:focus-visible { background: var(--panel); color: var(--ink); }
+.wbpoa-example.q-btn:hover::after, .wbpoa-example.q-btn:focus-visible::after { opacity: 1; transform: none; }
+.wbpoa-example .q-focus-helper { display: none; }
+.wbpoa-example .q-btn__content { display: block; text-align: left; }
+
+.wbpoa-composer {
+  position: sticky; bottom: 0; z-index: 1; margin: auto auto 0; width: 100%; max-width: var(--thread-max); background: var(--paper);
+  padding: var(--space-4) 0 var(--space-5); border-top: 1px solid var(--rule);
+}
+.wbpoa-composer::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: var(--space-6); pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--paper));
+}
+.wbpoa-composer-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); align-items: end; }
+.wbpoa-label { display: block; font-size: var(--step--1); font-weight: 600; color: var(--ink-2); margin-bottom: var(--space-2); }
+.wbpoa-hint { font-size: var(--step--1); color: var(--ink-3); margin-top: var(--space-2); }
+
+.wbpoa-composer .q-field__control, .wbpoa-app-aside .q-field__control { border-radius: var(--radius); }
+.q-field--outlined .q-field__control:before { border-color: var(--rule-strong); }
+.q-field--outlined.q-field--focused .q-field__control:after { border-color: var(--accent); border-width: 2px; }
+.q-field__native, .q-field__input { color: var(--ink) !important; font-family: var(--sans); }
+.q-field__native::placeholder { color: var(--ink-3); opacity: 1; }
+
+.wbpoa-primary.q-btn { border-radius: var(--radius); text-transform: none; font-weight: 600; letter-spacing: 0; min-height: 44px; padding: 0 var(--space-5); }
+.wbpoa-primary.q-btn:active { transform: translateY(1px); }
+.wbpoa-secondary.q-btn { border-radius: var(--radius); text-transform: none; font-weight: 600; letter-spacing: 0; color: var(--ink-2); padding: 0 var(--space-2); min-height: 36px; }
+.wbpoa-secondary.q-btn:hover { color: var(--accent); }
+
+/* Citation graph */
+
+.wbpoa-group-head { display: flex; align-items: baseline; gap: var(--space-3); border-bottom: 1px solid var(--rule); padding-bottom: var(--space-2); margin-bottom: var(--space-3); }
+.wbpoa-group-head h2, .wbpoa-group-head h3 { font-family: var(--serif); font-size: var(--step-1); font-weight: 600; margin: 0; }
+.wbpoa-count { font-size: var(--step--1); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wbpoa-link-columns { list-style: none; margin: 0; padding: 0; columns: 3 14rem; column-gap: var(--space-6); }
+.wbpoa-link-columns li { break-inside: avoid; padding: 3px 0; font-size: var(--step-0); line-height: 1.35; }
+.wbpoa-link-columns .instrument { color: var(--ink-3); font-size: var(--step--1); }
+
+.wbpoa-article { max-width: var(--answer-max); }
+.wbpoa-article-head { margin-bottom: var(--space-6); }
+.wbpoa-article-head .kind { font-family: var(--serif); font-style: italic; font-size: var(--step-2); color: var(--ink); margin: 0; }
+.wbpoa-article-head h1 { font-family: var(--serif); font-size: var(--step-3); font-weight: 700; line-height: 1.25; margin: var(--space-2) 0 0; text-wrap: balance; }
+.wbpoa-article-head .instrument { margin-top: var(--space-3); color: var(--ink-2); font-size: var(--step-0); }
+.wbpoa-article-head .wbpoa-counts {
+  display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin: var(--space-4) 0 0; padding-top: var(--space-3);
+  border-top: 1px solid var(--rule); font-size: var(--step--1); font-weight: 600; font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.wbpoa-article-text { font-family: var(--serif); font-size: var(--step-1); line-height: 1.65; color: var(--ink); }
+.wbpoa-article-text p { margin: 0 0 var(--space-2); }
+.wbpoa-article-text p.point { margin-top: var(--space-4); }
+.wbpoa-article-text p:first-child { margin-top: 0; }
+.wbpoa-article-text :is(p.dash, p.sub) { padding-left: 1.5em; text-indent: -1.5em; }
+.wbpoa-document-summary { font-family: var(--serif); font-size: var(--step-1); line-height: 1.6; color: var(--ink); margin: 0 0 var(--space-5); }
+.wbpoa-document-text { font-family: var(--serif); font-size: var(--step-0); line-height: 1.6; white-space: pre-wrap; color: var(--ink-2); max-height: 60vh; overflow: auto; padding-right: var(--space-3); }
+
+.wbpoa-communities { margin-top: var(--space-7); max-width: var(--answer-max); }
+.wbpoa-communities > .wbpoa-meta { margin-bottom: var(--space-5); }
+.wbpoa-communities .wbpoa-group-head h2 { font-family: var(--serif); font-size: var(--step-2); font-weight: 600; margin: 0; }
+.wbpoa-community { padding: var(--space-4) 0; border-top: 1px solid var(--rule); }
+.wbpoa-community:first-of-type { border-top: 0; padding-top: 0; }
+.wbpoa-community-level { margin: 0; font-size: var(--step--1); font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.wbpoa-community h3 { font-family: var(--serif); font-size: var(--step-1); font-weight: 600; margin: var(--space-1) 0 var(--space-2); text-wrap: balance; }
+.wbpoa-community-summary { margin: 0 0 var(--space-2); font-family: var(--serif); font-size: var(--step-0); line-height: 1.55; color: var(--ink-2); }
+.wbpoa-community-full { font-family: var(--serif); font-size: var(--step-0); line-height: 1.6; color: var(--ink-2); white-space: pre-wrap; max-height: 40vh; overflow-y: auto; margin: var(--space-2) 0 var(--space-4); padding-right: var(--space-3); }
+.wbpoa-community .q-expansion-item__container > .q-item { padding: 0; min-height: 32px; font-size: var(--step--1); color: var(--accent); font-weight: 600; }
+.wbpoa-community .wbpoa-link-columns li[aria-current] { color: var(--ink); }
+
+.wbpoa-ego { height: 320px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); }.wbpoa-neighbours { display: grid; gap: var(--space-5); }
+.wbpoa-neighbour-group h4 { font-size: var(--step--1); font-weight: 600; color: var(--ink-2); margin: 0 0 var(--space-2); display: flex; justify-content: space-between; }
+.wbpoa-neighbour-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.wbpoa-neighbour-group li { font-size: var(--step--1); line-height: 1.4; }
+.wbpoa-neighbour-group li a { word-break: break-word; }
+.wbpoa-neighbour-group .q-expansion-item__container > .q-item { padding: 0; min-height: 28px; font-size: var(--step--1); color: var(--ink-2); }
+
+.wbpoa-empty-note { color: var(--ink-3); font-size: var(--step--1); }
+
+/* About */
+
+.wbpoa-doc { max-width: var(--answer-max); font-family: var(--serif); font-size: var(--step-1); line-height: 1.65; color: var(--ink); }
+.wbpoa-doc h1 { font-size: var(--step-4); line-height: 1.15; margin: 0 0 var(--space-4); letter-spacing: -0.01em; text-wrap: balance; }
+.wbpoa-doc h2 { font-size: var(--step-2); margin: var(--space-7) 0 var(--space-3); }
+.wbpoa-doc p, .wbpoa-doc ol, .wbpoa-doc ul { margin: 0 0 var(--space-4); }
+.wbpoa-doc li { margin-bottom: var(--space-2); }
+.wbpoa-doc .lede { font-size: var(--step-2); line-height: 1.5; color: var(--ink-2); }
+.wbpoa-doc table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: var(--step--1); font-variant-numeric: tabular-nums; margin: var(--space-3) 0 var(--space-5); }
+.wbpoa-doc th { text-align: left; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--rule-strong); padding: var(--space-2) var(--space-3) var(--space-2) 0; }
+.wbpoa-doc td { padding: var(--space-2) var(--space-3) var(--space-2) 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.wbpoa-doc td.num, .wbpoa-doc th.num { text-align: right; }
+.wbpoa-toc { font-size: var(--step--1); }
+.wbpoa-toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.wbpoa-toc a { color: var(--ink-2); text-decoration: none; }
+.wbpoa-toc a:hover { color: var(--accent); text-decoration: underline; }
+
+.q-expansion-item .q-item__section--avatar { min-width: 0; }
+.q-tooltip { font-family: var(--sans); font-size: var(--step--1); background: var(--ink); color: var(--paper); border-radius: var(--radius); }
+
+/* Too narrow for two columns: the footnotes go back under the answer, a node's citations under
+   its text, and the about page's contents, which would land after the text, are left out. */
+@media (max-width: 1100px) {
+  .wbpoa-reply-body, .wbpoa-reading { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  .wbpoa-reply-sources, .wbpoa-reading-side { position: static; padding-left: 0; border-left: 0; }
+  .wbpoa-reading-side { max-height: none; overflow: visible; margin-top: var(--space-5); }
+  .wbpoa-reply-sources .wbpoa-footnote .excerpt { display: block; -webkit-line-clamp: unset; }
+  .wbpoa-reading-side:has(> .wbpoa-toc) { display: none; }
+}
+
+/* A node's page also carries the corpus panel, so its citations go under the text sooner, while
+   the text column would still be narrower than a comfortable measure. reading.js uses the same width. */
+@media (max-width: 1279px) {
+  .wbpoa-reading.wbpoa-reading--app { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  .wbpoa-reading--app > .wbpoa-reading-main { padding: var(--space-6) var(--space-6) 0; }
+  .wbpoa-reading--app > .wbpoa-reading-side {
+    position: static; max-height: none; overflow: visible; margin-top: var(--space-5);
+    padding: 0 var(--space-6) var(--space-7); border-left: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .wbpoa-split { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+  .wbpoa-aside { position: static; }
+
+  /* The chat's corpus panel shrinks to one bar above the conversation; the instruments are in
+     the running head and the graph in the main navigation. */
+  .wbpoa-page--app > .wbpoa-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 0; }
+  .wbpoa-chat-aside {
+    position: static; max-height: none; overflow: visible; flex-direction: row; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-6); border-right: 0; border-bottom: 1px solid var(--rule);
+  }
+  .wbpoa-chat-aside > .q-select { flex: 1; min-width: 0; }
+  .wbpoa-chat-aside .wbpoa-aside-extra { display: none; }
+  .wbpoa-chat-aside .wbpoa-secondary.q-btn { margin-left: 0; }
+
+  /* The graph's panel stands above the page: the picker, then the folded groups. */
+  .wbpoa-graph-aside {
+    position: static; max-height: none; overflow: visible; gap: var(--space-3);
+    padding: var(--space-3) var(--space-6) var(--space-4); border-right: 0; border-bottom: 1px solid var(--rule);
+  }
+  .wbpoa-corpus { padding: var(--space-6); }
+}
+
+@media (max-width: 640px) {
+  .wbpoa-masthead { padding: 0 var(--space-4); height: auto; min-height: 56px; flex-wrap: wrap; row-gap: var(--space-2); padding-top: var(--space-2); padding-bottom: var(--space-2); }
+  .wbpoa-brand img { height: 30px; }
+  .wbpoa-brand-name small { display: none; }
+  .wbpoa-nav { gap: var(--space-4); }
+  .wbpoa-running-head { padding: var(--space-2) var(--space-4); }
+  .wbpoa-running-trailing { display: none; }
+  .wbpoa-page { padding: var(--space-5) var(--space-4) var(--space-6); }
+  .wbpoa-page--app { padding: 0; }
+  .wbpoa-reading--app > .wbpoa-reading-main { padding: var(--space-5) var(--space-4) 0; }
+  .wbpoa-reading--app > .wbpoa-reading-side { padding: 0 var(--space-4) var(--space-6); }
+  .wbpoa-chat-aside, .wbpoa-graph-aside { padding: var(--space-3) var(--space-4); }
+  .wbpoa-corpus { padding: var(--space-5) var(--space-4) var(--space-6); }
+  .wbpoa-chat-aside .wbpoa-secondary.q-btn .q-btn__content > span { display: none; }
+  .wbpoa-conversation { padding: 0 var(--space-4); }
+  .wbpoa-conversation > .wbpoa-thread, .wbpoa-conversation > .wbpoa-empty { padding-top: var(--space-5); }
+  .wbpoa-composer { padding-bottom: var(--space-4); }
+  .wbpoa-composer .wbpoa-label, .wbpoa-hint { display: none; }
+  .wbpoa-empty h1 { font-size: var(--step-3); }
+  .wbpoa-link-columns { columns: 1; }
+}

@@ -1,0 +1,31 @@
+# Copy to data/corpora/<key>/corpus.toml and fill in every value.
+# <key> is the corpus selector: lowercase letters and digits separated by hyphens (e.g. "gdpr").
+
+name = "GDPR"  # human-readable name used in prompts and citations
+
+# One block per legal instrument. Exactly one instrument has role = "base".
+[[instruments]]
+key = "gdpr"                                # unique within the corpus
+name = "Regulation (EU) 2016/679"
+filename = "gdpr.html"                      # stored under data/corpora/<key>/source/
+celex_id = "32016R0679"                     # fetched from the EU Publications Office
+role = "base"                               # base | amending | implementing | supplementing | repealing | replacing
+aliases = ["GDPR", "General Data Protection Regulation"]
+status = "active"                           # active | inactive
+effective_from = 2016-05-24                 # optional; effective_to is optional too
+
+# Optional: directed relations between instruments of this corpus.
+# [[instrument_relations]]
+# source = "<instrument-key>"
+# target = "gdpr"
+# type = "implements"                       # amends | implements | supplements | repeals | replaces
+
+# Zotero group and collections (8-character keys) holding the guidelines.
+[guidelines]
+group_id = 1234567                          # placeholder
+collection_keys = ["XXXXXXXX"]              # placeholder
+
+# Optional: separate Zotero collections holding court rulings.
+# [rulings]
+# group_id = 1234567
+# collection_keys = ["XXXXXXXX"]

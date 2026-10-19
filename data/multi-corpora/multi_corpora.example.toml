@@ -1,0 +1,5 @@
+# Copy to data/multi-corpora/<key>/multi_corpora.toml (e.g. <key> = "gdpr-nis2").
+# Both corpora must already exist under data/corpora/ and be ingested.
+
+name = "GDPR + NIS2"
+corpora = ["gdpr", "nis2"]
