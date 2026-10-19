@@ -3,6 +3,8 @@ name = "web-open-acceleration-platform"
 version = "0.1.0"
 description = "Graph-based retrieval and question answering over EU legal corpora."
 requires-python = ">=3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 dependencies = [
     "bs4>=0.0.2",
     "docling>=2.120.2",

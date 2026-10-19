@@ -98,3 +98,13 @@ uv run wbpoa-ui                                             # web UI on http://1
 ```
 
 Each command takes `--help`.
+
+## Funding
+
+Developed within the Fit4MedRob Initiative (PNC0000007), funded by the Italian
+Ministry of University and Research (MUR) under the Piano Nazionale
+Complementare al PNRR.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE).
